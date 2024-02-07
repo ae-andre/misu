@@ -1,7 +1,8 @@
 {
   "scripts": {
-    "start": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
-    "server": "nodemon index.js",
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "server": "cd server && npm start",
     "client": "cd client && npm start"
   },
   "dependencies": {
