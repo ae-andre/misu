@@ -15,6 +15,11 @@ router.get('/', verifyToken, async (req, res) => {
 
 // Example: Create a new post
 router.post('/', verifyToken, async (req, res) => {
+    const post = new Post({
+        content: req.body.content,
+        author: req.body.author, // This should come from authenticated user session
+      });
+      
     try {
         const newPost = new Post({
             ...req.body,
