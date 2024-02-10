@@ -13,7 +13,7 @@ const jwtSecret = process.env.JWT_SECRET;
 // User registration endpoint
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { firstName, lastName, email, password } = req.body;
 
         // Check if user already exists
         const userExists = await User.findOne({ email });
@@ -24,7 +24,8 @@ router.post('/register', async (req, res) => {
 
         // Create a new user
         const user = new User({
-            name,
+            firstName,
+            lastName,
             email,
             password: hashedPassword,
         });
@@ -48,7 +49,9 @@ router.post('/login', async (req, res) => {
 
         const payload = {
             id: user._id,
-            email: user.email // Add any other user info you need
+            firstName: user.firstName, // Include first name in the payload
+            lastName: user.lastName,   // Include last name in the payload
+            email: user.email
         };
 
         const token = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
@@ -70,7 +73,8 @@ router.get('/validateToken', verifyToken, (req, res) => {
         success: true,
         user: {
             id: req.user.id,
-            name: req.user.name,
+            firstName: req.user.firstName,
+            lastName: req.user.lastName,
             email: req.user.email
         }
     });
