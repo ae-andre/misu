@@ -31,7 +31,7 @@ router.post('/photo', verifyToken, upload.single('photo'), async (req, res) => {
             return res.status(404).send({ message: "User not found." });
         }
 
-        user.photoUrl = `../public/uploads/${req.file.filename}`; // Adjust according to your file path logic
+        user.photoUrl = `/uploads/${req.file.filename}`; // Adjust according to your file path logic
         await user.save();
         return res.status(200).send({ message: "Photo uploaded successfully.", filePath: user.photoUrl });
     } catch (error) {
