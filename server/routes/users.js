@@ -30,6 +30,16 @@ router.get('/', async (req, res) => {
     }
   });
 
+router.get('/friends', async (req, res) => {
+    try {
+      const users = await User.findById();
+      res.json(users);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Server error while fetching photo URLs');
+    }
+  });
+
 const multerUpload = upload.single('photo');
 
 router.post('/photo', verifyToken, upload.single('photo'), async (req, res) => {

@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const Invite = require('../models/invite');
 const verifyToken = require('../middleware/verifyToken');
 
 
@@ -12,9 +13,9 @@ const jwtSecret = process.env.JWT_SECRET;
 
 // User registration endpoint
 router.post('/register', async (req, res) => {
-    try {
-        const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, inviteToken } = req.body;
 
+    try {
         // Check if user already exists
         const userExists = await User.findOne({ email });
         if (userExists) return res.status(400).send('User already exists');
@@ -23,14 +24,36 @@ router.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create a new user
-        const user = new User({
+        const newUser = new User({
             firstName,
             lastName,
             email,
             password: hashedPassword,
         });
 
-        await user.save();
+        await newUser.save();
+
+        // Handle invite token logic
+        if (inviteToken) {
+            const invite = await Invite.findOne({ token: inviteToken });
+            if (invite && !invite.used) {
+                const inviter = await User.findById(invite.inviterId);
+                if (inviter) {
+                    // Establish a connection between the new user and the inviter
+
+                    inviter.friends.push(newUser.id);
+                    newUser.friends.push(inviter.id);
+
+                    await inviter.save();
+                    await newUser.save();
+
+                    // Mark the invite as used
+                    invite.used = true;
+                    await invite.save();
+                }
+            }
+        }
+
         res.status(201).send('User created successfully');
     } catch (error) {
         res.status(500).send(error.message);

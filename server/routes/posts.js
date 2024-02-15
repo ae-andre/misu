@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middleware/verifyToken');
 const Post = require('../models/post');
+const User = require('../models/user');
 
 // Example: Fetch all posts from friends
-router.get('/posts/:userId', async (req, res) => {
+router.get('/:userId', async (req, res) => {
     try {
       const userId = req.params.userId;
       const user = await User.findById(userId);
@@ -15,7 +16,7 @@ router.get('/posts/:userId', async (req, res) => {
       // Fetch posts from the user and their friends
       const posts = await Post.find({
         user: { $in: [userId, ...user.friends] }
-      }).populate('user', 'username', 'photoUrl');
+      }).populate('user', 'username');
   
       res.json(posts);
     } catch (error) {
@@ -28,13 +29,13 @@ router.get('/posts/:userId', async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
     const post = new Post({
         content: req.body.content,
-        author: req.body.author,
+        user: req.body.user,
       });
       
     try {
         const newPost = new Post({
             ...req.body,
-            author: req.user.id,
+            user: req.user.id,
         });
         const post = await newPost.save();
         res.json(post);
