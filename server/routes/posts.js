@@ -4,20 +4,31 @@ const verifyToken = require('../middleware/verifyToken');
 const Post = require('../models/post');
 
 // Example: Fetch all posts from friends
-router.get('/', verifyToken, async (req, res) => {
+router.get('/posts/:userId', async (req, res) => {
     try {
-        const posts = await Post.find({ author: { $in: req.user.friends } }).populate('author', 'name');
-        res.json(posts);
+      const userId = req.params.userId;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).send('User not found');
+      }
+  
+      // Fetch posts from the user and their friends
+      const posts = await Post.find({
+        user: { $in: [userId, ...user.friends] }
+      }).populate('user', 'username', 'photoUrl');
+  
+      res.json(posts);
     } catch (error) {
-        res.status(500).send('Server error');
+      console.error(error);
+      res.status(500).send('Server error');
     }
-});
+  });
 
-// Example: Create a new post
-router.post('/addpost', verifyToken, async (req, res) => {
+// Create a new post
+router.post('/', verifyToken, async (req, res) => {
     const post = new Post({
         content: req.body.content,
-        author: req.body.author, // This should come from authenticated user session
+        author: req.body.author,
       });
       
     try {
