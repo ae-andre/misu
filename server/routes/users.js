@@ -16,6 +16,20 @@ router.get('/profile', verifyToken, async (req, res) => {
     }
 });
 
+
+// SHOW ALL USER OBJECTS
+// JUST FOR DEVELOPMENT
+// REMOVE BEFORE PRODUCTION
+router.get('/', async (req, res) => {
+    try {
+      const users = await User.find();
+      res.json(users);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Server error while fetching photo URLs');
+    }
+  });
+
 const multerUpload = upload.single('photo');
 
 router.post('/photo', verifyToken, upload.single('photo'), async (req, res) => {
