@@ -30,9 +30,10 @@ router.post('/photo', verifyToken, upload.single('photo'), async (req, res) => {
         if (!user) {
             return res.status(404).send({ message: "User not found." });
         }
-
+        console.log("Updating photoUrl for user", userId);
         user.photoUrl = `/uploads/${req.file.filename}`; // Adjust according to your file path logic
         await user.save();
+        console.log("photoUrl updated to", user.photoUrl);
         return res.status(200).send({ message: "Photo uploaded successfully.", filePath: user.photoUrl });
     } catch (error) {
         console.error(error);
