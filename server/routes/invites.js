@@ -22,8 +22,14 @@ router.get('/validate/:token', verifyToken, async (req, res) => {
       return res.status(404).json({ message: "Inviter not found" });
     }
 
-    // Return more information about the inviter
-    res.json({ inviter: { id: inviter.id, name: inviter.firstName + inviter.lastName + inviter.photoUrl } });
+    // Correctly format the inviter's information to include their name and photo URL
+    res.json({
+      inviter: {
+        id: inviter.id,
+        name: inviter.firstName + " " + inviter.lastName, // Assuming you have firstName and lastName fields
+        photoUrl: inviter.photoUrl
+      }
+    });
   } catch (error) {
     console.error('Error validating invite token:', error);
     res.status(500).send('Server error');
@@ -47,8 +53,13 @@ router.post('/accept', verifyToken, async (req, res) => {
       return res.status(404).json({ message: "Inviter or invited user not found" });
     }
 
-    inviter.friends.push(invitedUser.id);
-    invitedUser.friends.push(inviter.id);
+    // Prevent adding duplicate friend entries
+    if (!inviter.friends.includes(invitedUser._id)) {
+      inviter.friends.push(invitedUser._id);
+    }
+    if (!invitedUser.friends.includes(inviter._id)) {
+      invitedUser.friends.push(inviter._id);
+    }
 
     await inviter.save();
     await invitedUser.save();
@@ -57,12 +68,14 @@ router.post('/accept', verifyToken, async (req, res) => {
     invite.used = true;
     await invite.save();
 
+    console.log(`Invite accepted: ${inviter.email} and ${invitedUser.email} are now friends.`);
     res.json({ message: "Friend added successfully" });
   } catch (error) {
     console.error('Error accepting invite:', error);
     res.status(500).send('Server error');
   }
 });
+
 
 router.post('/generate', async (req, res) => {
   try {
